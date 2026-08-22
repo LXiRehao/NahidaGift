@@ -33,7 +33,7 @@ jobs:
           gradle-version: '8.2'
 
       - name: Build APK
-        run: gradle assembleDebug --no-daemon
+        run: gradle build --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
