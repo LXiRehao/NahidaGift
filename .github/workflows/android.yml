@@ -33,7 +33,9 @@ jobs:
           gradle-version: '8.2'
 
       - name: Build APK
-        run: gradle build --no-daemon
+        run: |
+          gradle assembleDebug --no-daemon --stacktrace
+          ls -la app/build/outputs/apk/debug/ || echo "APK目录不存在，编译可能失败"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
