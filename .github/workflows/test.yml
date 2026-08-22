@@ -1,0 +1,61 @@
+name: Test Project Structure
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-34 build-tools;34.0.0'
+
+      - name: Accept SDK Licenses
+        run: yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.2'
+
+      - name: 查看文件结构
+        run: |
+          echo "========== 根目录 =========="
+          ls -la
+          echo ""
+          echo "========== app/ 目录 =========="
+          ls -la app/ || echo "❌ app/ 不存在！"
+          echo ""
+          echo "========== settings.gradle =========="
+          cat settings.gradle || echo "❌ settings.gradle 不存在！"
+          echo ""
+          echo "========== 根目录 build.gradle =========="
+          cat build.gradle || echo "❌ build.gradle 不存在！"
+          echo ""
+          echo "========== app/build.gradle =========="
+          cat app/build.gradle || echo "❌ app/build.gradle 不存在！"
+          echo ""
+          echo "========== Gradle 项目列表 =========="
+          gradle projects
+          echo ""
+          echo "========== 所有可用任务 =========="
+          gradle tasks --all | grep -i "assemble\|build" || echo "❌ 没有找到相关任务"
+
+      - name: 尝试编译（只跑不生成）
+        run: |
+          echo "========== 尝试编译 =========="
+          gradle assembleDebug --dry-run || echo "❌ 编译预演失败"
