@@ -8,9 +8,10 @@ buildscript {
     }
 }
 
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
+// ⚠️ 删除或注释掉下面整个 allprojects 块
+// allprojects {
+//     repositories {
+//         google()
+//         mavenCentral()
+//     }
+// }
