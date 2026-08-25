@@ -11,6 +11,8 @@
 - 嘲讽Toast
 - 音量键拦截
 - 返回键拦截
+- 竖屏全屏更难划
+- 兼容Android 5至Android 16
 
 ## 技术栈
 - Java
