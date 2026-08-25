@@ -5,6 +5,7 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -20,6 +21,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // 全屏（代码方式，双保险）
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getSupportActionBar().hide();
 
         // 1. 音量拉满
         AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
@@ -45,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 clickCount--;
-                btnClose.setText("关闭 (" + clickCount + ")");
+                btnClose.setText("再点 " + clickCount + " 次关闭");
 
                 // 每次点击都显示Toast
                 Toast.makeText(MainActivity.this, "没有的，不要做无用的尝试了", Toast.LENGTH_SHORT).show();
@@ -95,11 +101,10 @@ public class MainActivity extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
     }
 
-    // 6. 拦截返回键（增加整蛊效果）
+    // 6. 拦截返回键
     @Override
     public void onBackPressed() {
         Toast.makeText(this, "没有的，不要做无用的尝试了", Toast.LENGTH_SHORT).show();
-        // 不调用super，禁止返回
     }
 
     // 7. 双重拦截音量键（Android 8+兜底）
@@ -122,4 +127,4 @@ public class MainActivity extends AppCompatActivity {
             mediaPlayer = null;
         }
     }
-                    }
+}
