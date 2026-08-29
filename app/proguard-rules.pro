@@ -1,6 +1,0 @@
--keep class ire.hao.gift.MainActivity { *; }
--keep class android.media.MediaPlayer { *; }
--keep class android.media.AudioManager { *; }
--keep class android.widget.Toast { *; }
--keep class android.widget.** { *; }
--keep class androidx.** { *; }
