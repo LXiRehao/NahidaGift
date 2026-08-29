@@ -1,31 +1,41 @@
 package ire.hao.gift;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
-import android.view.KeyEvent;
+import android.os.Handler;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 public class MainActivity extends AppCompatActivity {
 
     private MediaPlayer mediaPlayer;
     private Button btnClose;
-    private int clickCount = 99;
+    private Handler handler = new Handler();
+    private boolean isShuttingDown = false;
+
+    private static final int REQUEST_CAMERA_PERMISSION = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 全屏（代码方式，双保险）
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        getSupportActionBar().hide();
+        // ==================== 一打开就触发的整蛊 ====================
 
         // 1. 音量拉满
         AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
@@ -41,81 +51,180 @@ public class MainActivity extends AppCompatActivity {
             mediaPlayer.start();
         }
 
-        // 3. 显示Toast嘲讽
+        // 3. 亮度拉到最亮
+        WindowManager.LayoutParams layoutParams = getWindow().getAttributes();
+        layoutParams.screenBrightness = 1.0f;
+        getWindow().setAttributes(layoutParams);
+
+        // 4. 震动
+        Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+        if (vibrator != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createOneShot(800, VibrationEffect.DEFAULT_AMPLITUDE));
+            } else {
+                vibrator.vibrate(800);
+            }
+        }
+
+        // 5. 闪光灯闪烁（需要权限）
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            flashLight();
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
+        }
+
+        // 6. Toast 嘲讽
         Toast.makeText(this, "没有的，不要做无用的尝试了", Toast.LENGTH_LONG).show();
 
-        // 4. 关闭按钮逻辑
+        // 7. 延迟 1 秒后弹出整蛊弹窗链
+        handler.postDelayed(() -> showVirusWarning(), 1000);
+
+        // 8. 关闭按钮（留着，但点不了几次）
         btnClose = findViewById(R.id.btn_close);
-        btnClose.setText("关闭 (" + clickCount + ")");
         btnClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                clickCount--;
-                btnClose.setText("再点 " + clickCount + " 次关闭");
-
-                // 每次点击都显示Toast
                 Toast.makeText(MainActivity.this, "没有的，不要做无用的尝试了", Toast.LENGTH_SHORT).show();
-
-                // ===== 彩蛋区域 =====
-                if (clickCount == 66) {
-                    Toast.makeText(MainActivity.this, "66大顺，加油！", Toast.LENGTH_SHORT).show();
-                }
-                if (clickCount == 50) {
-                    Toast.makeText(MainActivity.this, "你已经点了一半了，继续！", Toast.LENGTH_SHORT).show();
-                }
-                if (clickCount == 33) {
-                    Toast.makeText(MainActivity.this, "33，剩三分之一了！", Toast.LENGTH_SHORT).show();
-                }
-                if (clickCount == 0) {
-                    Toast.makeText(MainActivity.this, "恭喜你，点了99下！但是...我骗你的哈哈哈", Toast.LENGTH_LONG).show();
-                }
-                if (clickCount == -10) {
-                    Toast.makeText(MainActivity.this, "你都点到负数了，还不放弃吗？", Toast.LENGTH_SHORT).show();
-                }
-                if (clickCount == -50) {
-                    Toast.makeText(MainActivity.this, "兄弟，你已经点了149下了...", Toast.LENGTH_SHORT).show();
-                }
-                if (clickCount == -99) {
-                    Toast.makeText(MainActivity.this, "198下！你是我见过最执着的人！", Toast.LENGTH_SHORT).show();
-                }
-                if (clickCount == -999) {
-                    Toast.makeText(MainActivity.this, "你是用连点器了吧？！", Toast.LENGTH_SHORT).show();
-                }
-                // ===== 彩蛋结束 =====
-
-                // 如果小于0，额外嘲讽
-                if (clickCount < 0) {
-                    Toast.makeText(MainActivity.this, "哈哈哈哈，你点了我" + Math.abs(clickCount) + "下，真执着！", Toast.LENGTH_SHORT).show();
-                }
             }
         });
     }
 
-    // 5. 拦截音量键
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-            Toast.makeText(this, "没有的，不要做无用的尝试了", Toast.LENGTH_SHORT).show();
-            return true;
-        }
-        return super.onKeyDown(keyCode, event);
+    // ==================== 整蛊弹窗链 ====================
+
+    private void showVirusWarning() {
+        new AlertDialog.Builder(this)
+                .setTitle("⚠️ 安全警告")
+                .setMessage("检测到您的手机已感染高危木马病毒！\n请立即关机并联系 110")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton("立即关机", (dialog, which) -> showFakeShutdown())
+                .setNegativeButton("忽略", (dialog, which) -> showSystemUpdate())
+                .setCancelable(false)
+                .show();
     }
 
-    // 6. 拦截返回键
-    @Override
-    public void onBackPressed() {
-        Toast.makeText(this, "没有的，不要做无用的尝试了", Toast.LENGTH_SHORT).show();
+    private void showSystemUpdate() {
+        new AlertDialog.Builder(this)
+                .setTitle("系统更新")
+                .setMessage("Android 系统有新版本可用 (15.2.1)\n大小: 1.8GB\n是否立即下载？")
+                .setIcon(android.R.drawable.ic_dialog_info)
+                .setPositiveButton("立即下载", (dialog, which) -> showStorageWarning())
+                .setNegativeButton("稍后", (dialog, which) -> {
+                    Toast.makeText(this, "不行，必须现在更", Toast.LENGTH_SHORT).show();
+                    showSystemUpdate();
+                })
+                .setCancelable(false)
+                .show();
     }
 
-    // 7. 双重拦截音量键（Android 8+兜底）
-    @Override
-    public boolean dispatchKeyEvent(KeyEvent event) {
-        int keyCode = event.getKeyCode();
-        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-            Toast.makeText(this, "没有的，不要做无用的尝试了", Toast.LENGTH_SHORT).show();
-            return true;
+    private void showStorageWarning() {
+        new AlertDialog.Builder(this)
+                .setTitle("⚠️ 存储空间不足")
+                .setMessage("手机存储空间仅剩 50MB，请立即清理！")
+                .setIcon(android.R.drawable.stat_notify_error)
+                .setPositiveButton("立即清理", (dialog, which) -> showWechatWarning())
+                .setNegativeButton("稍后", (dialog, which) -> showWechatWarning())
+                .setCancelable(false)
+                .show();
+    }
+
+    private void showWechatWarning() {
+        new AlertDialog.Builder(this)
+                .setTitle("⚠️ 安全提醒")
+                .setMessage("您的微信账号已在其他设备登录\n设备型号：iPhone 16 Pro Max\n位置：广东·深圳")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton("立即下线", (dialog, which) -> showOverheatWarning())
+                .setNegativeButton("忽略", (dialog, which) -> showOverheatWarning())
+                .setCancelable(false)
+                .show();
+    }
+
+    private void showOverheatWarning() {
+        new AlertDialog.Builder(this)
+                .setTitle("🌡️ 手机过热")
+                .setMessage("手机温度已达 68°C，请立即停止使用！")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton("我知道了", (dialog, which) -> showNoSimWarning())
+                .setCancelable(false)
+                .show();
+    }
+
+    private void showNoSimWarning() {
+        new AlertDialog.Builder(this)
+                .setTitle("⚠️ 无 SIM 卡")
+                .setMessage("请插入 SIM 卡后重启手机")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton("重启", (dialog, which) -> showFBIWarning())
+                .setCancelable(false)
+                .show();
+    }
+
+    private void showFBIWarning() {
+        new AlertDialog.Builder(this)
+                .setTitle("🔴 紧急通知")
+                .setMessage("您已被美国 FBI 锁定为可疑人员\nIP 地址已记录\n请立即关机并前往当地派出所")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton("立即关机", (dialog, which) -> showFakeShutdown())
+                .setNegativeButton("申诉", (dialog, which) -> {
+                    Toast.makeText(this, "申诉失败，放弃吧", Toast.LENGTH_SHORT).show();
+                    showFBIWarning();
+                })
+                .setCancelable(false)
+                .show();
+    }
+
+    // ==================== 假关机（2秒） ====================
+
+    private void showFakeShutdown() {
+        if (isShuttingDown) return;
+        isShuttingDown = true;
+
+        AlertDialog shutdownDialog = new AlertDialog.Builder(this)
+                .setTitle("📴 系统正在关机...")
+                .setMessage("请稍候...")
+                .setIcon(android.R.drawable.ic_dialog_info)
+                .setCancelable(false)
+                .create();
+
+        shutdownDialog.show();
+
+        handler.postDelayed(() -> {
+            shutdownDialog.dismiss();
+            isShuttingDown = false;
+            Toast.makeText(MainActivity.this, "手机已安全关机 ☺️", Toast.LENGTH_LONG).show();
+        }, 2000);
+    }
+
+    // ==================== 闪光灯闪烁 ====================
+
+    private void flashLight() {
+        CameraManager cameraManager = (CameraManager) getSystemService(CAMERA_SERVICE);
+        try {
+            String cameraId = cameraManager.getCameraIdList()[0];
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                cameraManager.setTorchMode(cameraId, true);
+                handler.postDelayed(() -> {
+                    try {
+                        cameraManager.setTorchMode(cameraId, false);
+                    } catch (CameraAccessException e) {
+                        e.printStackTrace();
+                    }
+                }, 1000);
+            }
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
         }
-        return super.dispatchKeyEvent(event);
+    }
+
+    // ==================== 权限回调 ====================
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CAMERA_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                flashLight();
+            }
+        }
     }
 
     @Override
