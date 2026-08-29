@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace 'ire.hao.gift'
-    compileSdk 36
+    compileSdk 34
 
     defaultConfig {
         applicationId "ire.hao.gift"
         minSdk 21
-        targetSdk 36
+        targetSdk 34
         versionCode 1
         versionName "1.0"
     }
@@ -25,8 +25,8 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false      // ← 改成 false，关闭混淆
-            shrinkResources false    // ← 也关掉资源压缩
+            minifyEnabled false
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.debug
         }
